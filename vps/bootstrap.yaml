@@ -1,0 +1,123 @@
+---
+- name: Create SSH key
+  hosts: localhost
+
+  vars_prompt:
+    - name: "vps_key_password"
+      prompt: "Enter password for SSH key"
+      private: true
+      confirm: true
+
+  tasks:
+    - name: Generate SSH key
+      command:
+        cmd: "ssh-keygen -t rsa -b 2048 -f {{ vps_key_file }} -N '{{ vps_key_password }}'"
+        creates: "{{ vps_key_file }}"
+      delegate_to: localhost
+
+    - name: Export key to PEM format
+      command:
+        cmd: "ssh-keygen -f {{ vps_key_file }} -e -m pem > {{ vps_key_file }}.pem"
+        creates: "{{ vps_key_file }}.pem"
+      delegate_to: localhost
+
+    - name: Set permissions for the PEM file
+      file:
+        path: "{{ vps_key_file }}.pem"
+        mode: '0400'
+      delegate_to: localhost
+
+    - name: Add to ssh config
+      blockinfile:
+        path: "~/.ssh/ssh_config"
+        block: |
+          Host {{ vps_alias }}
+            HostName {{ vps_ip }}
+            User {{ vps_user }}
+            IdentityFile {{ vps_key_file }}.pem
+        create: true
+        backup: true
+      delegate_to: localhost
+
+    - name: Add vps key to SSH agent
+      shell: ssh-add {{ vps_key_file }}
+      delegate_to: localhost
+
+- name: Bootstrap VPS
+  hosts: bootstrap
+  become: true
+
+  vars_prompt:
+    - name: "user_password"
+      prompt: "Enter new user password for {{ vps_user }}"
+      private: true
+      encrypt: "sha512_crypt"
+      confirm: true
+    - name: "root_password"
+      prompt: "Enter new root password"
+      private: true
+      encrypt: "sha512_crypt"
+      confirm: true
+
+  handlers:
+    - name: Restart SSHD
+      import_tasks: roles/restart/tasks/sshd.yaml
+
+  tasks:
+    - name: Create new user
+      ansible.builtin.user:
+        name: "{{ vps_user }}"
+        shell: /bin/bash
+        createhome: true
+        home: "/home/{{ vps_user }}"
+        password: "{{ user_password }}"
+        groups: sudo
+        append: true
+        state: present
+
+    - name: Add to sudoers
+      ansible.builtin.lineinfile:
+        dest: /etc/sudoers
+        line: "{{ vps_user }} ALL=(ALL) NOPASSWD: ALL"
+        validate: /usr/sbin/visudo -cf %s
+        state: present
+        mode: '0440'
+        create: true
+        backup: true
+
+    - name: Set authorized key
+      authorized_key:
+        user: "{{ vps_user }}"
+        state: present
+        key: "{{ lookup('file', vps_key_file ~ '.pub') }}"
+
+    - name: Install UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: Enable SSH
+      ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+
+    - name: Change root password
+      user:
+        name: root
+        password: "{{ root_password }}"
+        update_password: always
+
+    - name: Disable root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
+        validate: /usr/sbin/sshd -t -f %s
+        state: present
+        backup: true
+      notify: Restart SSHD
