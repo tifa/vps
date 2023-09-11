@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  push:
+
+concurrency: lint-${{ github.sha }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    environment: develop
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run checks
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.0
