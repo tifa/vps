@@ -3,7 +3,6 @@
 import json
 import os
 
-vps_default_password = os.environ.get("VPS_DEFAULT_PASSWORD")
 vps_ip = os.environ.get("VPS_IP")
 vps_user = os.environ.get("VPS_USER")
 
