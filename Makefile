@@ -30,12 +30,13 @@ bootstrap: venv
 		-e "vps_key_file=$(VPS_KEY_FILE)"
 
 provision: venv
-	@$(ANSIBLE) vps/provision.yaml --ask-pass
+	@$(ANSIBLE) vps/provision.yaml
 
 check: venv
 	@$(ACTIVATE) pre-commit run --all
+	@$(ACTIVATE) pre-commit run --hook-stage push
 
 clean:
 	@git clean -Xdf
 
-.PHONY: setup check clean
+.PHONY: setup provision check clean

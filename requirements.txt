@@ -1,3 +1,4 @@
 ansible==2.10.7
 passlib==1.7.4
 pre-commit==2.19.0
+ruff==0.3.2

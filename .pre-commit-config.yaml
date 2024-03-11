@@ -3,13 +3,22 @@ repos:
     rev: v4.3.0
     hooks:
       - id: check-added-large-files
+        stages: [manual, commit]
       - id: check-merge-conflict
+        stages: [manual, commit]
       - id: check-yaml
+        stages: [manual, commit]
       - id: end-of-file-fixer
+        stages: [manual, commit]
       - id: requirements-txt-fixer
+        stages: [manual, commit]
       - id: trailing-whitespace
-  - repo: https://github.com/ansible-community/ansible-lint
-    rev: v6.4.0
+        stages: [manual, commit]
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.3.2
     hooks:
-      - id: ansible-lint
-        name: ansible-lint
+      - id: ruff
+        args: ["--fix"]
+        stages: [manual, push]
+      - id: ruff-format
+        stages: [manual, push]
