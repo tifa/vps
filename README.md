@@ -42,7 +42,7 @@ make start
 - Run a MySQL instance
 - Run a phpMyAdmin instance
 
-In the development environment, a certificate is created at `./assets/traefik/certs/dev.crt` and is added to the system's trusted SSL certificates (this is currently only configured to work in macOS).
+In the development environment, a certificate is created at `./assets/traefik/certs/dev.crt`. On macOS it is added to the system's trusted SSL certificates.
 
 ## Add a new service
 

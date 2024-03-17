@@ -50,6 +50,7 @@ start: venv cert build network
 .PHONY: stop
 stop: venv
 	@docker compose --project-name $(PROJECT_NAME) down --remove-orphans
+	@$(MAKE) network-stop
 
 .PHONY: restart
 restart: stop start
@@ -73,8 +74,8 @@ cert-dev:
 			-newkey rsa:2048 -x509 -nodes -new -sha256 -days 365 \
     		-keyout "dev.key" -out "dev.crt" -subj "/CN=$(FIRST_HOSTNAME)" \
     		-reqexts req_ext -extensions req_ext -config dev.ext.tmp
-	@sudo security delete-certificate -c "*.tifa.local" /Library/Keychains/System.keychain
-	@sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./assets/traefik/dev/certs/dev.crt
+	@[ "$(shell uname -s)" != "Darwin" ] || sudo security delete-certificate -c "*.tifa.local" /Library/Keychains/System.keychain
+	@[ "$(shell uname -s)" != "Darwin" ] || sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./assets/traefik/dev/certs/dev.crt
 
 .PHONY: network
 network:
