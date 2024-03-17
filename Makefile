@@ -45,7 +45,7 @@ venv/.build_touchfile: Dockerfile $(ASSETS)
 
 .PHONY: start
 start: cert build network
-	@docker compose --project-name $(PROJECT_NAME) up -d
+	@docker compose --project-name $(PROJECT_NAME) up --detach
 
 .PHONY: stop
 stop:
@@ -64,7 +64,8 @@ cert-prod:
 .PHONY: cert-dev
 cert-dev:
 	$(eval CERT_HOSTNAMES=$(shell echo $(CERT_HOSTNAMES) | awk 'BEGIN{OFS=", "; RS=","; prefix="DNS:"} {$$1=prefix $$1} {printf("%s%s", NR==1 ? "" : OFS, $$1)} END {printf("\n")}'))
-	@CERT_HOSTNAMES="$(CERT_HOSTNAMES)" \
+	@HOSTNAME="$(HOSTNAME)" \
+		CERT_HOSTNAMES="$(CERT_HOSTNAMES)" \
 		envsubst < ./assets/traefik/dev/certs/dev.ext > ./assets/traefik/dev/certs/dev.ext.tmp; \
 	docker run --rm -it -v ./assets/traefik/dev/certs/:/etc/traefik/certs/ \
 		-w /etc/traefik/certs/ \

@@ -1,3 +1,7 @@
+networks:
+  tifa:
+    external: true
+
 services:
   proxy:
     image: proxy
@@ -5,7 +9,7 @@ services:
     hostname: proxy.${HOSTNAME}
     labels:
       traefik.enable: true
-      traefik.http.routers.dashboard.rule: Host(`${HOSTNAME:-}`) && (PathPrefix(`/api`') || PathPrefix(`/dashboard`))
+      traefik.http.routers.dashboard.rule: Host(`${HOSTNAME}`) && (PathPrefix(`/api`') || PathPrefix(`/dashboard`))
       traefik.http.routers.dashboard.service: api@internal
     networks:
       - tifa
@@ -13,6 +17,7 @@ services:
       - 3306:3306
       - 443:443
       - 80:80
+      - 8080:8080
     restart: always
     volumes:
       - ./assets/traefik/${ENVIRONMENT}:/etc/traefik/
@@ -26,7 +31,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
     labels:
       traefik.enable: true
-      traefik.http.routers.mysql.rule: Host(`mysql.${HOSTNAME:-}`)
+      traefik.http.routers.mysql.rule: Host(`mysql.${HOSTNAME}`)
       traefik.http.routers.mysql.entrypoints: mysql
     networks:
       - tifa
@@ -40,20 +45,16 @@ services:
     environment:
       PMA_HOST: mysql
     hostname: phpmyadmin.${HOSTNAME}
-    networks:
-      - tifa
     labels:
       traefik.enable: true
-      traefik.http.routers.phpmyadmin.rule: Host(`phpmyadmin.${HOSTNAME:-}`)
-      trafeik.http.routers.phpmyadmin.entrypoints: websecure
+      traefik.http.routers.phpmyadmin.rule: Host(`phpmyadmin.${HOSTNAME}`)
+      traefik.http.routers.phpmyadmin.entrypoints: websecure
       traefik.http.routers.phpmyadmin.tls.certresolver: letsencrypt
+    networks:
+      - tifa
     restart: always
     depends_on:
       - mysql
 
 volumes:
   mysql:
-
-networks:
-  tifa:
-    external: true
