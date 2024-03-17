@@ -1,4 +1,9 @@
 venv/
 
 .env
+*.crt
+*.key
+
 .ruff_cache/
+
+.DS_Store

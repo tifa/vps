@@ -1,0 +1,36 @@
+global:
+  checkNewVersion: true
+
+accessLog:
+  filePath: /var/log/traefik/access.log
+
+log:
+  level: DEBUG
+  filePath: /var/log/traefik/traefik.log
+
+api:
+  dashboard: true
+  debug: true
+  insecure: true
+
+providers:
+  docker:
+    exposedByDefault: false
+    watch: true
+  file:
+    fileName: /etc/traefik/certs.yaml
+    watch: true
+
+entryPoints:
+  mysql:
+    address: :3306
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: :443

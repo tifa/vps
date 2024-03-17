@@ -1,0 +1,11 @@
+[dn]
+CN = *.tifa.local
+
+[req]
+distinguished_name = dn
+req_extensions = req_ext
+
+[req_ext]
+subjectAltName=DNS:*.tifa.local, DNS:127.0.0.1
+keyUsage=digitalSignature
+extendedKeyUsage=serverAuth

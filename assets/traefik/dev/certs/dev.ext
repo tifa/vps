@@ -1,0 +1,11 @@
+[dn]
+CN = ${FIRST_HOSTNAME}
+
+[req]
+distinguished_name = dn
+req_extensions = req_ext
+
+[req_ext]
+subjectAltName=${DNS_HOSTNAMES}
+keyUsage=digitalSignature
+extendedKeyUsage=serverAuth

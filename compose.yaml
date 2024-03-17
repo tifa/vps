@@ -1,0 +1,59 @@
+services:
+  proxy:
+    image: proxy
+    container_name: proxy
+    hostname: proxy.${HOSTNAME}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.dashboard.rule: Host(`${HOSTNAME:-}`) && (PathPrefix(`/api`') || PathPrefix(`/dashboard`))
+      traefik.http.routers.dashboard.service: api@internal
+    networks:
+      - tifa
+    ports:
+      - 3306:3306
+      - 443:443
+      - 80:80
+    restart: always
+    volumes:
+      - ./assets/traefik/${ENVIRONMENT}:/etc/traefik/
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    hostname: mysql.${HOSTNAME}
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    labels:
+      traefik.enable: true
+      traefik.http.routers.mysql.rule: Host(`mysql.${HOSTNAME:-}`)
+      traefik.http.routers.mysql.entrypoints: mysql
+    networks:
+      - tifa
+    restart: always
+    volumes:
+      - mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_ARBITRARY: 1
+    hostname: phpmyadmin.${HOSTNAME}
+    networks:
+      - tifa
+    labels:
+      traefik.enable: true
+      traefik.http.routers.phpmyadmin.rule: Host(`phpmyadmin.${HOSTNAME:-}`)
+      trafeik.http.routers.phpmyadmin.entrypoints: websecure
+      traefik.http.routers.phpmyadmin.tls.certresolver: letsencrypt
+    restart: always
+    depends_on:
+      - mysql
+
+volumes:
+  mysql:
+
+networks:
+  tifa:
+    external: true

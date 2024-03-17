@@ -1,0 +1,7 @@
+/logs/access.log
+/logs/stdout.log {
+    size 1M
+    rotate 1
+    missingok
+    notifempty
+}
