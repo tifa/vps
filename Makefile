@@ -44,11 +44,11 @@ venv/.build_touchfile: Dockerfile $(ASSETS)
 	@touch $@
 
 .PHONY: start
-start: venv cert build network
-	@HOSTNAME=$(MAIN_HOSTNAME) docker compose --project-name $(PROJECT_NAME) up -d
+start: cert build network
+	@docker compose --project-name $(PROJECT_NAME) up -d
 
 .PHONY: stop
-stop: venv
+stop:
 	@docker compose --project-name $(PROJECT_NAME) down --remove-orphans
 	@$(MAKE) network-stop
 
@@ -63,18 +63,16 @@ cert-prod:
 
 .PHONY: cert-dev
 cert-dev:
-	$(eval DNS_HOSTNAMES=$(shell echo $(HOSTNAMES) | awk 'BEGIN{OFS=", "; RS=","; prefix="DNS:"} {$$1=prefix $$1} {printf("%s%s", NR==1 ? "" : OFS, $$1)} END {printf("\n")}'))
-	$(eval FIRST_HOSTNAME=$(shell echo $(HOSTNAMES) | cut -d',' -f1))
-	@DNS_HOSTNAMES="$(DNS_HOSTNAMES)" \
-		FIRST_HOSTNAME="$(FIRST_HOSTNAME)" \
+	$(eval CERT_HOSTNAMES=$(shell echo $(CERT_HOSTNAMES) | awk 'BEGIN{OFS=", "; RS=","; prefix="DNS:"} {$$1=prefix $$1} {printf("%s%s", NR==1 ? "" : OFS, $$1)} END {printf("\n")}'))
+	@CERT_HOSTNAMES="$(CERT_HOSTNAMES)" \
 		envsubst < ./assets/traefik/dev/certs/dev.ext > ./assets/traefik/dev/certs/dev.ext.tmp; \
 	docker run --rm -it -v ./assets/traefik/dev/certs/:/etc/traefik/certs/ \
 		-w /etc/traefik/certs/ \
 		alpine/openssl req \
 			-newkey rsa:2048 -x509 -nodes -new -sha256 -days 365 \
-    		-keyout "dev.key" -out "dev.crt" -subj "/CN=$(FIRST_HOSTNAME)" \
+    		-keyout "dev.key" -out "dev.crt" -subj "/CN=$(HOSTNAME)" \
     		-reqexts req_ext -extensions req_ext -config dev.ext.tmp
-	@[ "$(shell uname -s)" != "Darwin" ] || sudo security delete-certificate -c "*.tifa.local" /Library/Keychains/System.keychain
+	@[ "$(shell uname -s)" != "Darwin" ] || sudo security delete-certificate -c "$(HOSTNAME)" /Library/Keychains/System.keychain
 	@[ "$(shell uname -s)" != "Darwin" ] || sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./assets/traefik/dev/certs/dev.crt
 
 .PHONY: network

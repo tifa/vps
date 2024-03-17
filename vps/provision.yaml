@@ -51,6 +51,19 @@
         update_cache: true
         install_recommends: false
 
+    - name: Add to Docker group
+      user:
+        name: tifa
+        groups: docker
+        append: yes
+
+    - name: Run Docker permissions
+      file:
+        path: /var/run/docker.sock
+        owner: tifa
+        group: docker
+        mode: 0660
+
     - name: Install AWS CLI
       apt:
         name: awscli
@@ -63,3 +76,10 @@
         rule: allow
         port: "80"
         proto: tcp
+
+    - name: Install make
+      apt:
+        name: make
+        state: present
+        update_cache: true
+        install_recommends: false

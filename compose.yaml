@@ -23,7 +23,7 @@ services:
     container_name: mysql
     hostname: mysql.${HOSTNAME}
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
     labels:
       traefik.enable: true
       traefik.http.routers.mysql.rule: Host(`mysql.${HOSTNAME:-}`)
@@ -38,7 +38,7 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
     environment:
-      PMA_ARBITRARY: 1
+      PMA_HOST: mysql
     hostname: phpmyadmin.${HOSTNAME}
     networks:
       - tifa

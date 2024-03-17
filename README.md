@@ -26,7 +26,7 @@ make bootstrap
 make provision
 ```
 
-- Install: virtualenv, Docker, AWS CLI
+- Install: virtualenv, Docker, AWS CLI, make
 - Allow 80/TCP connections
 
 ## Run shared services

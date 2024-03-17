@@ -3,6 +3,7 @@ venv/
 .env
 *.crt
 *.key
+**/*.tmp
 
 .ruff_cache/
 
