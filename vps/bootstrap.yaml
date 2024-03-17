@@ -33,7 +33,7 @@
 
     - name: Add to ssh config
       blockinfile:
-        path: "~/.ssh/ssh_config"
+        path: "~/.ssh/config"
         block: |
           Host {{ vps_alias }}
             HostName {{ vps_ip }}
