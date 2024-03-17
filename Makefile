@@ -51,6 +51,9 @@ start: venv cert build network
 stop: venv
 	@docker compose --project-name $(PROJECT_NAME) down --remove-orphans
 
+.PHONY: restart
+restart: stop start
+
 .PHONY: cert
 cert: cert-$(ENVIRONMENT)
 
@@ -76,6 +79,10 @@ cert-dev:
 .PHONY: network
 network:
 	@docker network create $(PROJECT_NAME) || true
+
+.PHONY: network-stop
+network-stop:
+	@docker network rm $(PROJECT_NAME) || true
 
 .PHONY: clean
 clean:
